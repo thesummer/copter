@@ -19,3 +19,10 @@ test/
 *.run.xml
 *.a
 *.creator.user
+*.d
+*.eep
+*.hex
+*.lss
+*.lst
+*.map
+*.sym
