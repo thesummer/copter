@@ -18,7 +18,7 @@ int main(void)
   //Initialize OC1A pin (Pin PB3) for LED
   
   DDRB  |= 1<<DDB3;		//Set PortB Pin3 as an output (OC1A)
-  PORTB |= 1<<PINB3;		//Set PortB Pin3 high to turn on LED
+  PORTB |= 1<<PORTB3;		//Set PortB Pin3 high to turn on LED
       
   //Setup the clock
   cli();			//Disable global interrupts
