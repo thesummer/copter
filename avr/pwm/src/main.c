@@ -3,20 +3,20 @@
 * 05.07.2012
 *
 * ATtiny2313
-* Blinks one LED conneced to PD0 every second
-* Dimms a seond LED connected to PB2, dimming changes every second (together with first LED)
+* Dimms a 4 LEDs connected to OC0A/B and OC1A/B (Pins D5 and B2 - B4)
 *
 */
-
-#define duty1	OCR0A
-#define duty2	OCR0B
-#define duty3	OCR1A
-#define duty4	OCR1B
 
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
+
+
+#define duty1	OCR0A
+#define duty2	OCR0B
+#define duty3	OCR1A
+#define duty4	OCR1B
 
 
 int main(void)
@@ -55,6 +55,7 @@ int main(void)
   
   sei();			//Enable global interrupts
 
+  // Dimm the LEDs by changing the duty cycle of the PWMs
   int i;
   while(1) 
   {
