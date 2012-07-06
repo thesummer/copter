@@ -61,7 +61,11 @@ int main(void)
 	PwmInit();				// PWM init
 	
 	sei();  // Re-enable interrupts
-
+      
+	duty1 = rxbuffer[0] = 128;
+	duty2 = rxbuffer[1] = 128;
+	duty3 = rxbuffer[2] = 128;
+	duty4 = rxbuffer[3] = 128;
 
 while(1)
     {
@@ -95,12 +99,14 @@ void PwmInit()
       sbi(TCCR0A, WGM00);	//Set to phase correct PWM
       sbi(TCCR0A, COM0A1);	//Activate channel1 at pin OC0A
       sbi(TCCR0A, COM0B1);	//Activate channel2 at pin OC0B
-      sbi(TCCR0B, CS01);	//Set prescaler to 8
+      sbi(TCCR0B, CS00);	//Set prescaler to 64
+      sbi(TCCR0B, CS01);	
       
       //Setup timer1
       sbi(TCCR1A, WGM10);	//Set to 8-bit phase correct pwm
       sbi(TCCR1A, COM1A1);	//Activate channel1 at pin OC1A
       sbi(TCCR1A, COM1B1);	//Activate channel2 at pin OC1B
-      sbi(TCCR1B, CS11);	//Set prescaler to 8
+      sbi(TCCR1B, CS10);	//Set prescaler to 64
+      sbi(TCCR1B, CS11);	
 }
 
