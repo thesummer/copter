@@ -1,0 +1,13 @@
+The master (raspberryPi) controls the duty cycles of all 4 channels of the slave via the I2C-interface.
+Change the name of I2CPORT and the PWM_SLAVE_ADDRESS accordingly in main.c.
+In order to compile the header-files of the ncurses-library are needed.
+Then compile with
+gcc main.c -o master -lncurses
+
+The slave initializes 4 pwm channels and reads the duty cycle from the rx-buffer of the I2C interface. The I2C-driver library from Martin Junghans is used for I2C implementation.
+Compile with:
+make
+To program the microcontroller use:
+make program (make sure to adapt your controller and your programmer in the makefile first)
+
+
