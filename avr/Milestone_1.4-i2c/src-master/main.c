@@ -18,7 +18,7 @@
 #define LOW_BYTE(x)        	(x & 0xff)					    // Get low byte from 16 bit number
 #define HIGH_BYTE(x)       	((x >> 8) & 0xff)			  // Get high byte from 16 bit number
 
-uint16_t channel[4] = {0,0,0,0};
+int channel[4] = {0,0,0,0};
 char row[LENGTH+1];
 int pwmSlave;
 
@@ -74,10 +74,10 @@ int setAllChannels()
             channel[i] = 8191;
         if (channel[i] < 0)
             channel[i] = 0;
-        data[2*i]   = HIGH_BYTE(channel[i]);
-        data[2*i+1] = LOW_BYTE(channel[i]);
+        data[2*i+1]   = HIGH_BYTE(channel[i]);
+        data[2*i+2] = LOW_BYTE(channel[i]);
     }
-    
+
     if (write(pwmSlave, data, 9) != 9)
      {
        endwin();

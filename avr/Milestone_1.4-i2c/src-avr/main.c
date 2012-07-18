@@ -85,7 +85,7 @@ int main(void)
             ATOMIC_BLOCK(ATOMIC_FORCEON)
             {
                 //Update duty cycles and txbuffer
-                dutyCycles[i] = uniq(rxbuffer[i*2+1], rxbuffer[i*2]);
+                dutyCycles[i] = uniq(rxbuffer[i*2+1], rxbuffer[i*2]) + i*8192;
                 txbuffer[i*2]   = rxbuffer[i*2];
                 txbuffer[i*2+1] = rxbuffer[i*2+1];
             }
