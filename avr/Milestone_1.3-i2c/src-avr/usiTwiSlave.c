@@ -1,17 +1,19 @@
-/*##############################################################################
+/**
 
-	Name	: USI TWI Slave driver - I2C/TWI-EEPROM
-	Version	: 1.3  - Stable
-	autor	: Martin Junghans	jtronics@gmx.de
-	page	: www.jtronics.de
-	License	: GNU General Public License 
+    @file   usiTwiSlave.c
+    @brief  USI TWI Slave driver - I2C/TWI-EEPROM
+    @version 1.3  - Stable
+    @author Martin Junghans	jtronics@gmx.de
+    @page   www.jtronics.de
+
+    License	: GNU General Public License
 	
-	Update	: 09.09.2011 - ATtiny24, ATtiny44, ATtiny88
+    @date Update: 09.09.2011 - ATtiny24, ATtiny44, ATtiny88
 
 	Created from Atmel source files for Application Note AVR312: 
 	Using the USI Module as an I2C slave like an I2C-EEPROM.
 
-//############################################################################*/
+*/
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -214,11 +216,16 @@ typedef enum
 
 //############################################################## local variables
 
- volatile uint8_t         	slaveAddress;
+ volatile uint8_t         	slaveAddress; /*!< Address of the I2C-slave */
  volatile overflowState_t 	overflowState;
 
 //############################################ initialize USI for TWI slave mode
 
+/*!
+ \brief Initialize the USI as I2C slave
+
+ \param ownAddress  the address which the slave will listen to
+*/
 void usiTwiSlaveInit(  uint8_t ownAddress)
 {
   slaveAddress = ownAddress;

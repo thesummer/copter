@@ -1,10 +1,11 @@
-/*##############################################################################
+/**
 
-	Name	: USI TWI Slave driver - I2C/TWI-EEPROM
-	Version	: 1.3  - Stable
-	autor	: Martin Junghans	jtronics@gmx.de
-	page	: www.jtronics.de
-	License	: GNU General Public License 
+    @brief USI TWI Slave driver - I2C/TWI-EEPROM
+    @version 1.3  - Stable
+    @author Martin Junghans	jtronics@gmx.de
+    @page www.jtronics.de
+
+    License	: GNU General Public License
 
 	Created from Atmel source files for Application Note AVR312: 
 	Using the USI Module as an I2C slave like an I2C-EEPROM.
@@ -49,7 +50,7 @@
 		- Buffer address is automatically incremented
 		- If buffer address > buffersize -> start with buffer address 0x00
 	
-//############################################################################*/
+*/
 
 #ifndef _USI_TWI_SLAVE_H_
 #define _USI_TWI_SLAVE_H_
@@ -60,6 +61,11 @@
 
 //################################################################### prototypes
 
+/*!
+ \brief Initialize the USI as I2C slave
+
+ \param ownAddress  the address which the slave will listen to
+*/
 void    usiTwiSlaveInit(uint8_t ownAddress);	// send slave address
 
 //#################################################################### variables
@@ -67,9 +73,9 @@ void    usiTwiSlaveInit(uint8_t ownAddress);	// send slave address
 #define buffer_size 4						     //in bytes (2..254), change ONLY here!!!!!
 
 
-volatile uint8_t rxbuffer[buffer_size];         // Buffer to write data received from the master
-volatile uint8_t txbuffer[buffer_size];			// Transmission buffer to be read from the master
-volatile uint8_t buffer_adr; 					// Virtual buffer address register
+volatile uint8_t rxbuffer[buffer_size];         // Buffer to write data received from the master /*!< TODO */
+volatile uint8_t txbuffer[buffer_size];			// Transmission buffer to be read from the master /*!< TODO */
+volatile uint8_t buffer_adr; 					// Virtual buffer address register /*!< TODO */
 
 
 #if 	(buffer_size > 254)
