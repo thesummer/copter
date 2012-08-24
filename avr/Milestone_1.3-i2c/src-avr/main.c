@@ -40,7 +40,7 @@
 
 //####################################################################### Macros
 
-#define uniq(LOW,HEIGHT)	((HEIGHT << 8)|LOW)			  ///< Create 16 bit number from two bytes
+#define uniq(LOW,HEIGHT)	((HEIGHT << 8)|LOW)           ///< Create 16 bit number from two bytes
 #define LOW_BYTE(x)        	(x & 0xff)					  ///< Get low byte from 16 bit number
 #define HIGH_BYTE(x)       	((x >> 8) & 0xff)			  ///< Get high byte from 16 bit number
 
