@@ -54,7 +54,7 @@
     static uint8_t offCounter; //Stores the next channel to turn off
 
     static uint16_t onValues[4] = {0, 8191, 16383, 24575};       //OCRA1 values for every ms
-    static uint16_t dutyCycles[4] = {4095, 12287, 20479, 28671}; //Stores the duty cycles for each channel
+    static uint16_t dutyCycles[4] = {12287, 20479, 28671, 4095}; //Stores the duty cycles for each channel
 
 
 //################################################################# Main routine
@@ -66,13 +66,25 @@ int main(void)
 
     cli();  // Disable interrupts
 	
-	usiTwiSlaveInit(SLAVE_ADDR_ATTINY);	// TWI slave init
+    usiTwiSlaveInit(SLAVE_ADDR_ATTINY);	// TWI slave init
     //Initialize rxbuffer
-    for(i=0; i<3; i++)
-    {
-        rxbuffer[i*2]   = HIGH_BYTE(dutyCycles[i]);
-        rxbuffer[i*2+1] = LOW_BYTE(dutyCycles[i]);
-    }
+//    for(i=0; i<3; i++)
+//    {
+//        rxbuffer[i*2]   = HIGH_BYTE( (dutyCycles[i] - i*8192) );
+//        rxbuffer[i*2+1] = LOW_BYTE( (dutyCycles[i]  - i*8192) );
+//    }
+
+    rxbuffer[0] = HIGH_BYTE( (dutyCycles[0] - 1*8192) );
+    rxbuffer[1] = LOW_BYTE(  (dutyCycles[0] - 1*8192) );
+
+    rxbuffer[2] = HIGH_BYTE( (dutyCycles[1] - 2*8192) );
+    rxbuffer[3] = LOW_BYTE(  (dutyCycles[1] - 2*8192) );
+
+    rxbuffer[4] = HIGH_BYTE( (dutyCycles[2] - 3*8192) );
+    rxbuffer[5] = LOW_BYTE(  (dutyCycles[2] - 3*8192) );
+
+    rxbuffer[6] = HIGH_BYTE( (dutyCycles[3] - 0*8192) );
+    rxbuffer[7] = LOW_BYTE(  (dutyCycles[3] - 0*8192) );
 
     PwmInit();                          // PWM init
 	
@@ -80,15 +92,67 @@ int main(void)
 
     while(1)
     {
-        for (i=0; i<3; i++)
+//        for (i=0; i<3; i++)
+//        {
+//            ATOMIC_BLOCK(ATOMIC_FORCEON)
+//            {
+//                //Update duty cycles and txbuffer
+//                dutyCycles[i] = uniq(rxbuffer[i*2+1], rxbuffer[i*2]) + ((i+1)%4) * 8192;
+//                txbuffer[i*2]   = rxbuffer[i*2];
+//                txbuffer[i*2+1] = rxbuffer[i*2+1];
+//            }
+        //        }
+        uint16_t temp;
+        switch (receivedNewValue)
         {
+        case 1:
+            receivedNewValue = 0;
+            temp = uniq(rxbuffer[1], rxbuffer[0]) + 1 * 8192;
             ATOMIC_BLOCK(ATOMIC_FORCEON)
             {
                 //Update duty cycles and txbuffer
-                dutyCycles[i] = uniq(rxbuffer[i*2+1], rxbuffer[i*2]) + i*8192;
-                txbuffer[i*2]   = rxbuffer[i*2];
-                txbuffer[i*2+1] = rxbuffer[i*2+1];
+                dutyCycles[0] = temp;
             }
+            txbuffer[0]   = rxbuffer[0];
+            txbuffer[1]   = rxbuffer[1];
+            break;
+
+        case  3:
+            receivedNewValue = 0;
+            temp = uniq(rxbuffer[3], rxbuffer[2]) + 2 * 8192;
+            ATOMIC_BLOCK(ATOMIC_FORCEON)
+            {
+                //Update duty cycles and txbuffer
+                dutyCycles[1] = temp;
+            }
+            txbuffer[2]   = rxbuffer[2];
+            txbuffer[3]   = rxbuffer[3];
+            break;
+
+        case 5:
+            receivedNewValue = 0;
+            temp = uniq(rxbuffer[5], rxbuffer[4]) + 3 * 8192;
+            ATOMIC_BLOCK(ATOMIC_FORCEON)
+            {
+                //Update duty cycles and txbuffer
+                dutyCycles[2] = temp;
+            }
+            txbuffer[4]   = rxbuffer[4];
+            txbuffer[5]   = rxbuffer[5];
+            break;
+
+        case 7:
+            receivedNewValue = 0;
+            temp = uniq(rxbuffer[7], rxbuffer[6]) + 0 * 8192;
+            ATOMIC_BLOCK(ATOMIC_FORCEON)
+            {
+                //Update duty cycles and txbuffer
+                dutyCycles[3] = temp;
+            }
+            txbuffer[6]   = rxbuffer[6];
+            txbuffer[7]   = rxbuffer[7];
+            break;
+
         }
     } //end.while
 } //end.main
@@ -105,14 +169,14 @@ static void PwmInit()
       sbi(TCCR1B, WGM13);	//CTC mode with ICR1 as TOP register
       sbi(TCCR1B, WGM12);
 
-      ICR1 = (1<<15)-1;     //Set Top value to 2^15-1 == 4ms at 8MHz
+      ICR1 = 0x7fff;     //Set Top value to 2^15-1 == 4ms at 8MHz
       sbi(TIMSK, ICIE1);   //Activate interrupt at TOP
       sbi(TIMSK, OCIE1A);  //Activate interrupt for OCR1A register
       sbi(TIMSK, OCIE1B);  //Activate interrupt for OCR1B register
 
       //Initialize registers and variables
-      OCR1A = onValues[0];
-      OCR1B = dutyCycles[0];
+      OCR1A = onValues[1];
+      OCR1B = dutyCycles[3];
       onCounter  = 1;
       offCounter = 0;
 
@@ -154,12 +218,12 @@ ISR(TIMER1_COMPA_vect)
 */
 ISR(TIMER1_COMPB_vect)
 {
-    switch (offCounter++)
+    switch (offCounter)
     {
     case 0: cbi(PORTB, ch3); break;
     case 1: cbi(PORTD, ch0); break;
     case 2: cbi(PORTB, ch1); break;
     case 3: cbi(PORTB, ch2); break;
     }
-    OCR1B = dutyCycles[offCounter];
+    OCR1B = dutyCycles[offCounter++];
 }
