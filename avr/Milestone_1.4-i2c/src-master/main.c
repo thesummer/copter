@@ -1,3 +1,15 @@
+/**
+    @file src-master/main.c
+    @brief program for the I2C master running a Linux OS
+    @author Jan Sommer
+    @date  1/8/2012
+
+    Initializes an I2C-device already available in the linux /dev-tree.
+    Provides a primitive ncurses-UI to send new duty cycle value via I2C to the slave.
+    Each channel is represented with a labeled horizontal bar which length corresponds to
+    the value set to the duty cycle.
+*/
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -7,33 +19,44 @@
 #include <stdint.h>
 #include <ncurses.h>
 
-#define I2CPORT "/dev/i2c-0"
-#define PWM_SLAVE_ADDR  0b0011010
+#define I2CPORT "/dev/i2c-0"        ///< name of the I2C-device (i2c-0 for raspberryPi)
+#define PPM_SLAVE_ADDR  0b0011010   ///< Address of the I2C-slave @sa SLAVE_ADDR_ATTINY
+/**
+    The first "register" of the I2C-slave.
+    As it is only a buffer array the address space starts with 0.
+*/
 #define STARTREGISTER 0
 // #define FALSE 1
-// #define TRUE 06
-#define LENGTH 62
+// #define TRUE 0
+#define LENGTH 62   ///< Maximum length of the bar presented in the UI
+
+int channel[4] = {0,0,0,0}; /*!< Array which holds the current value of each channel */
+char row[LENGTH+1]; /*!< String which contains length '#'s which represent a full bar*/
+int ppmSlave; /*!< device descriptor of the PWM-slave */
 
 #define uniq(LOW,HEIGHT)	((HEIGHT << 8)|LOW)			  // Create 16 bit number from two bytes
 #define LOW_BYTE(x)        	(x & 0xff)					    // Get low byte from 16 bit number
 #define HIGH_BYTE(x)       	((x >> 8) & 0xff)			  // Get high byte from 16 bit number
 
-int channel[4] = {0,0,0,0};
-char row[LENGTH+1];
-int pwmSlave;
-int failCounter = 0;
+int channel[4] = {0,0,0,0};  /*!< Array containing the duty cycles of each channel*/
+char row[LENGTH+1];          /*!< Array containing LENGTH '#' which represents the maximum length of the bar chart*/
+int ppmSlave;                /*!< file descriptor for the ppm-slave*/
+int failCounter = 0;         /*!< counts the number of failed writes to the I2C-bus */
 int err;
 
+/**
+    @brief Initialize the I2C-device and device descirptor for the slave
+*/
 int I2Cinit()
 {
-      pwmSlave = open(I2CPORT, O_RDWR | O_NOCTTY | O_NDELAY);
-      if (pwmSlave == -1)
+      ppmSlave = open(I2CPORT, O_RDWR | O_NOCTTY | O_NDELAY);
+      if (ppmSlave == -1)
       {
             printf("open_port: Unable to open i2c-bus. Maybe root permissions necessary?\n");
             return FALSE; //0 == error
       }
       
-      if (ioctl(pwmSlave, I2C_SLAVE, PWM_SLAVE_ADDR) < 0)
+      if (ioctl(ppmSlave, I2C_SLAVE, PPM_SLAVE_ADDR) < 0)
       {
             printf("Failed to acquire bus access and/or talk to slave.\n");
             return FALSE; // 0 == error
@@ -42,6 +65,12 @@ int I2Cinit()
       return TRUE;     
 }
 
+/*!
+ \brief Set a new duty cycle for a certain channel @a ch of the slave
+
+ \param ch the channel which is to be updated
+ \return int TRUE if successful otherwise FALSE
+*/
 int setSingleChannel(int ch)
 {
     uint8_t data[3];
@@ -53,7 +82,7 @@ int setSingleChannel(int ch)
     data[0] = STARTREGISTER + 2*ch;
     data[1] = HIGH_BYTE(channel[ch]);
     data[2] = LOW_BYTE(channel[ch]);
-    if (write(pwmSlave, data, 3) != 3)
+    if (write(ppmSlave, data, 3) != 3)
      {
        endwin();
        printf("Failed write duty cycle\n");
@@ -66,6 +95,11 @@ int setSingleChannel(int ch)
       return TRUE;
 }
 
+/*!
+ \brief Writes new duty cycles to all channels of the slave at once (only on write command)
+
+ \return int TRUE if successful otherwise FALSE
+*/
 int setAllChannels()
 {
     uint8_t data[9];
@@ -80,7 +114,7 @@ int setAllChannels()
         data[2*i+1]   = HIGH_BYTE(channel[i]);
         data[2*i+2]   = LOW_BYTE(channel[i]);
     }
-    err = write(pwmSlave, data, 9);
+    err = write(ppmSlave, data, 9);
     if (err != 9)
      {
        endwin();
@@ -93,6 +127,10 @@ int setAllChannels()
       return TRUE;
 }
 
+/*!
+ \brief  Update the ncurses ui-screen
+
+*/
 void printScreen()
 {
    erase();
@@ -103,6 +141,7 @@ void printScreen()
    mvprintw(10, 2, "Channel 3:");
    mvprintw(14, 2, "Channel 4:");
    
+   //calculate the length of each bar an draw it next to the labels
    attron(COLOR_PAIR(1) | A_INVIS);
    mvprintw(4, 5, "%s", &row[LENGTH - LENGTH*channel[0]/8191]);
    mvprintw(8, 5, "%s", &row[LENGTH - LENGTH*channel[1]/8191]);
@@ -115,6 +154,7 @@ void printScreen()
    mvprintw(12, 63, ":%4d", channel[2]);
    mvprintw(16, 63, ":%4d", channel[3]);
    
+   //Print the information how to use the program
    mvprintw(18, 2, "+/-: Switch to increase or decrease mode");
    mvprintw(19, 2, "1-4:Change value of channel");
    mvprintw(20, 2, "a:Change all channels");
@@ -123,21 +163,35 @@ void printScreen()
    refresh();
 }
       
+/*!
+ \brief  main program of the master
 
+ Sets up the I2C device and ncurses ui.
+ Reacts on the user input.
+
+ \param argc
+ \param argv[]
+ \return int
+*/
 int main(int argc, char *argv[])
 {
    int ch = 0;
    int i;
+
+   //initialize an array of '#' which determines the maximum length of a bar
    for (i = 0; i<LENGTH+1; i++)
 	 row[i] = '#';
    row[0] = 'a';
    row[LENGTH] = '\0';
    
+   //Initialize I2C-device
    if (I2Cinit() != TRUE)
    {
        printf("Initializing I2C interface failed\n");
        exit (1);
    }
+
+   //Initialize ncurses
    initscr();
    if(has_colors() == FALSE)
 	{	endwin();
@@ -149,9 +203,13 @@ int main(int argc, char *argv[])
    cbreak();
    noecho();
     
-//   setAllChannels();
+   //Initialize the duty cycles of the slave
+   setAllChannels();
    printScreen();
+
    int inc = 1;
+
+   //Wait for user input
    while(ch != 'q')
    {
 	 ch = getch();
@@ -175,7 +233,7 @@ int main(int argc, char *argv[])
      }
      printScreen();
    }
-   endwin();
+   endwin();  //Stop ncurses
    
    return 0;
 }

@@ -1,5 +1,6 @@
 /**
 
+    @file usiTwiSlave.h
     @brief USI TWI Slave driver - I2C/TWI-EEPROM
     @version 1.3  - Stable
     @author Martin Junghans	jtronics@gmx.de
