@@ -66,7 +66,7 @@ void    usiTwiSlaveInit(uint8_t ownAddress);	// send slave address
 
 #define buffer_size 8						     //in bytes (2..254), change ONLY here!!!!!
 
-
+volatile uint8_t receivedNewValue;
 volatile uint8_t rxbuffer[buffer_size];         // Buffer to write data received from the master
 volatile uint8_t txbuffer[buffer_size];			// Transmission buffer to be read from the master
 volatile uint8_t buffer_adr; 					// Virtual buffer address register

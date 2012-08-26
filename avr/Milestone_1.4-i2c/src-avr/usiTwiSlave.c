@@ -372,6 +372,7 @@ ISR( USI_OVERFLOW_VECTOR )	// Handles all the communication. Only disabled when 
 			else 							// Ongoing access, receive data
 				{
 				rxbuffer[buffer_adr]=data; 				// Write data to buffer
+                receivedNewValue = buffer_adr;          // Set flag that new value in buffer
 				buffer_adr++; 							// Increment buffer address for next write access
 				}
 				overflowState = USI_SLAVE_REQUEST_DATA;	// Next USI_SLAVE_REQUEST_DATA
