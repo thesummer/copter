@@ -21,6 +21,8 @@
 int channel[4] = {0,0,0,0};
 char row[LENGTH+1];
 int pwmSlave;
+int failCounter = 0;
+int err;
 
 int I2Cinit()
 {
@@ -55,7 +57,8 @@ int setSingleChannel(int ch)
      {
        endwin();
        printf("Failed write duty cycle\n");
-       exit (1);
+       failCounter++;
+//       exit (1);
      }
 //     else
 //        printf("Sending new duty cycle succeeded\n");
@@ -75,14 +78,15 @@ int setAllChannels()
         if (channel[i] < 0)
             channel[i] = 0;
         data[2*i+1]   = HIGH_BYTE(channel[i]);
-        data[2*i+2] = LOW_BYTE(channel[i]);
+        data[2*i+2]   = LOW_BYTE(channel[i]);
     }
-
-    if (write(pwmSlave, data, 9) != 9)
+    err = write(pwmSlave, data, 9);
+    if (err != 9)
      {
        endwin();
        printf("Failed write duty cycles\n");
-       exit (1);
+       failCounter++;
+//       exit (1);
      }
 //      else
 //        printf("Sending new duty cycles succeeded\n");
@@ -92,6 +96,8 @@ int setAllChannels()
 void printScreen()
 {
    erase();
+
+   mvprintw(0, 2, "missed writes: %d \t %d", failCounter, err);
    mvprintw(2, 2, "Channel 1:");
    mvprintw(6, 2, "Channel 2:");
    mvprintw(10, 2, "Channel 3:");
@@ -143,7 +149,7 @@ int main(int argc, char *argv[])
    cbreak();
    noecho();
     
-   setAllChannels();
+//   setAllChannels();
    printScreen();
    int inc = 1;
    while(ch != 'q')
