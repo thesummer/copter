@@ -70,12 +70,12 @@ void    usiTwiSlaveInit(uint8_t ownAddress);	// send slave address
 
 //#################################################################### variables
 
-#define buffer_size 4						     //in bytes (2..254), change ONLY here!!!!!
+#define buffer_size 4						     ///< in bytes (2..254), change ONLY here!!!!!
 
 
-volatile uint8_t rxbuffer[buffer_size];         // Buffer to write data received from the master /*!< TODO */
-volatile uint8_t txbuffer[buffer_size];			// Transmission buffer to be read from the master /*!< TODO */
-volatile uint8_t buffer_adr; 					// Virtual buffer address register /*!< TODO */
+volatile uint8_t rxbuffer[buffer_size];         ///< Buffer to write data received from the master /*!< TODO */
+volatile uint8_t txbuffer[buffer_size];			///< Transmission buffer to be read from the master /*!< TODO */
+volatile uint8_t buffer_adr; 					///< Virtual buffer address register /*!< TODO */
 
 
 #if 	(buffer_size > 254)
